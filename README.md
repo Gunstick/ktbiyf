@@ -16,11 +16,12 @@ Aim of the project:
 * create a complete demo with file selector
 
 Bonus
-* adapt to octalyzer format to be able to play other tunes
+* adapt code to octalyser format to be able to play other tunes
+* convert original tracks to octalyser for distribution
 
 What is special about this demo?
 * 8 voices on normal ST (seems to have special STE mode)
 * overscan
 * never before seen VU meter display with variable slope triangles
-* instruments compressed with the domino 4bit sound packer
+* instruments 1:2 compressed with the domino 4bit sound packer
 
