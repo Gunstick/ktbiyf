@@ -1,0 +1,68 @@
+Data 0,1,2,4,8,16,32,64,128,192,224,240,248,252,254,255
+Dim Komp$(15)
+For I%=0 To 15
+  Read J%
+  J%=J%*4
+  Komp$(I%)=Hex$(J% Div &H1000)+Hex$(J% Div &H100 Mod &H10)+Hex$(J% Div &H10 Mod &H10)+Hex$(J% Mod &H10)
+  Print Komp$(I%)
+Next I%
+Dim H$(&HFF)
+For I%=&H0 To &HFF
+  H$(I%)=Hex$(I% Div &H10)+Hex$(I% Mod &H10)
+  '  Print H$(I%)
+Next I%
+Dim Domino$(&H100),Used%(&HFF)
+Used%(0)=1
+Print "0"
+Let Domino$(0)="0"
+Gosub Mkdomino(0,1)
+Print
+Let Domino$(&H100)=Domino$(0)
+Cls
+Open "O",#1,"domino.tab"
+For I%=0 To &HFF
+  If (I% Mod 16)=0
+    Print #1,"	dc.w	";
+  Endif
+  Let Domino$(I%)=Komp$(Val("&h"+Domino$(I%)))  !+Komp$(Val("&h"+Domino$(I%+1)))
+  Print #1,"$";Domino$(I%);
+  If ((I%+1) Mod 16)=0
+    Print #1
+  Else
+    Print #1,",";
+  Endif
+Next I%
+End
+Cls
+For I%=0 To &HFF
+  Print At(1,17);Hex$(I%)
+  For J%=0 To &HFF
+    Found!=Val("&H"+Domino$(J%))=I%
+    Exit If Found!
+  Next J%
+  Print At((J% Mod 16)*4+1,J% Div 16+1);"p";Domino$(J%);"q";
+  If Not Found!
+    Print "Error"
+  Endif
+Next I%
+Procedure Mkdomino(Last%,Level%)
+  Local I%
+  If Level%<=&HFF
+    Print At((Level% Mod 16)+1,(Level% Div 16)+1);Hex$(Last%);" ";
+    Let Domino$(Level%)=Hex$(Last%)
+    '    Print "Actual:";Hex$(Last%),Level%
+    For I%=Last%*&H10 To Last%*&H10+&HF
+      '      Print Space$(Level%);Hex$(I%),Last%
+      '      Void Inp(2)
+      If Used%(I%)=0
+        '        Print I%;":";Used%(I%)
+        Used%(I%)=1
+        Gosub Mkdomino(Val("&H"+H$(I%)) Mod &H10,Level%+1)
+        Used%(I%)=0
+      Endif
+      Exit If Founddomino!
+    Next I%
+  Else
+    Founddomino!=True
+  Endif
+Return

@@ -3,6 +3,9 @@ It can handle raw 8bit files, signed or unsigned.
 Adds some hiss to the sound. This is usually unnoticeable
 on a noisy STF playback.
 
+some more infos in the forum
+http://www.atari-forum.com/viewtopic.php?f=1&t=4357&p=32070&hilit=domino#p32070
+
 compressing:
 
 usage: komp -k infile.dat outfile.dmn
@@ -29,4 +32,9 @@ Quality test (for linux users):
   sox -m -v 1 input.wav -v -1 output.wav sound-difference.wav
   aplay sound-difference.wav # play the difference caused by compression 
   rm input.dat input.dmn input.wav output.dat output.wav sound-difference.wav # cleanup
+
+
+How is that domino table generated?
+mkdomino.lst gfa basic program to generate
+domino.tab resulting table
 
