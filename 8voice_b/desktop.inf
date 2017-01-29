@@ -1,0 +1,21 @@
+#a000000
+#b000000
+#c7770007000600070055200505552220770557075055507703111103
+#d                                             
+#E 18 11 
+#W 01 00 08 02 0A 09 08 A:\ALMUT\*.*@
+#W 01 00 18 01 0A 09 08 A:\TYREM\*.*@
+#W 00 02 08 0D 0A 09 08 A:\*.*@
+#W 01 00 16 0D 0A 09 08 A:\OHLALA\*.*@
+#M 00 00 00 FF A DISKSTATION@ @ 
+#M 00 01 00 FF B DISKSTATION@ @ 
+#T 00 03 02 FF   PAPIERKORB@ @ 
+#F FF 04   @ *.*@ 
+#D FF 01   @ *.*@ 
+#G 03 FF   *.APP@ @ 
+#G 03 FF   *.PRG@ @ 
+#P 03 FF   *.TTP@ @ 
+#F 03 04   *.TOS@ @ 
+#G 03 04   A:\XMD_STF.PRG@ *.XSD@ 
+#G 03 04   A:\XMD_STE.PRG@ *.XMD@ 
+
