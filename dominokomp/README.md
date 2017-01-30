@@ -21,20 +21,22 @@ So uncompress with: komp -d theme.xsd theme.snd
 verify: sox -t raw -e signed -b8 -c1 -r16000  theme.snd -t wav - | aplay
 
 Quality test (for linux users):
-  sox test.wav -t raw -e unsigned -b 8 -c 1 input.dat   # convert to raw
-  sox -t raw -e unsigned -b8 -c1 -r16000 input.dat input.wav  # back to wav
-  make komp         # compile tool
-  ./komp -k input.dat input.dmn     # create domino kompressed file
-  ./komp -d input.dmn output.dat  # decompress file again
-  sox -t raw -e unsigned -b8 -c1 -r16000  output.dat output.wav # convert to wav
-  aplay input.wav # play original
-  aplay output.wav # play kompressed  
-  sox -m -v 1 input.wav -v -1 output.wav sound-difference.wav
-  aplay sound-difference.wav # play the difference caused by compression 
-  rm input.dat input.dmn input.wav output.dat output.wav sound-difference.wav # cleanup
-
+```
+sox test.wav -t raw -e unsigned -b 8 -c 1 input.dat   # convert to raw
+sox -t raw -e unsigned -b8 -c1 -r16000 input.dat input.wav  # back to wav
+make komp         # compile tool
+./komp -k input.dat input.dmn     # create domino kompressed file
+./komp -d input.dmn output.dat  # decompress file again
+sox -t raw -e unsigned -b8 -c1 -r16000  output.dat output.wav # convert to wav
+aplay input.wav # play original
+aplay output.wav # play kompressed  
+sox -m -v 1 input.wav -v -1 output.wav sound-difference.wav
+aplay sound-difference.wav # play the difference caused by compression 
+rm input.dat input.dmn input.wav output.dat output.wav sound-difference.wav # cleanup
+```
 
 How is that domino table generated?
-mkdomino.lst gfa basic program to generate
-domino.tab resulting table
+mkdomino.lst gfa basic program to generate the domino.tab
+
+For those who know python, a simular script is mkdomino.py
 
