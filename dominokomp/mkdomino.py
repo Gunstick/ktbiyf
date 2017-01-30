@@ -1,32 +1,60 @@
 #!/usr/bin/python
-used=[]
+used=[0]*0x100
 domino=[]
 
-used[0]=1
-print "0",
-domino[0]="0"
-mkdomino(0,1)
-print ""
-domino[0x100]=domino[0]
+# principle:
+# search last value in domino
+# get it's low nibble
+# search for a possible hex number (16 possibilities) using used[]
+# put the value into domino
+# mark it off in used[]
+# repeat
 
-for i in range(0,0xff):
-  if((i % 16) == 0):
-    print " dc.w ",
-  print hex(i),
-  print ",",
+# create function: find level'th piece after last
+def mkdomino(level,last):
+  #print "level=",level
+  for j in range(0,0x100):
+    if(level>0xff):
+      # this is the end condition. quit the program here (ugly)
+      print "Domino table:"
+      dtab=""
+      kt=""
+      j=0
+      for de in domino:
+        dtab+=kt+hex(de)[2:].zfill(2)
+        j+=1
+        if(j%16):
+          kt=","
+        else:
+          dtab+="\n"
+          kt=""
+      print dtab
+      quit()
+    # print "last=",hex(last)
+    # get it's low nibble
+    nibble=last % 0x10
+    # print "nibble=",nibble
+    # search for a possible hex number (16 possibilities) using used[]
+    for i in range(0x0,0x10):
+      # print "i=",i
+      nextval=nibble*0x10+i
+      #print "nextval=",hex(nextval)
+      if(used[nextval]==0):  # not yet used
+        # put the value into domino
+        #print "appending",hex(nextval)
+        domino.append(nextval)
+        # print hex(nextval)
+        # mark it off in used[]
+        used[nextval]=1    
+        # repeat
+        mkdomino(level+1,nextval)
+        # we come back from recursion
+        # if it did not find
+        #print "removing",hex(nextval)
+        used[nextval]=0
+        del domino[-1]
+      
 
-# recursive function doing stuff
-def mkdomino(last,level):
-  if(level<=0xff):
-    domino[level]=hex(last)
-    for i in range(last*0x10,last*0x10+0xf):
-      if(used[i]==0):
-        used[i]=1
-        mkdomino(i % 0x10,level+1)
-        used[i]=0
-      if (founddomino==1):
-        return
-    # next i
-    else: 
-      founddomino=1
+mkdomino(0,0)
+exit
 
