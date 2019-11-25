@@ -1,9 +1,9 @@
 # ktbiyf
-Kicking The Bass Into Your Face
+Kicking The Bass In Your Face
 
-A demo for atari ST (and ste)
+A demo for atari ST (and ste) https://demozoo.org/productions/136767/
 
-One of the first 8 voice players on the ST.
+One of the first 8 voice player on the ST created 1991, never finished 1992
 Features cool triangle VU meter display in overscan.
 
 The 8voice_a and 8voice_b folders are the original floppies
