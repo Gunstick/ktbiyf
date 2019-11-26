@@ -23,5 +23,5 @@ What is special about this demo?
 * 8 voices on normal ST (seems to have special STE mode)
 * overscan
 * never before seen VU meter display with variable slope triangles
-* instruments 1:2 compressed with the domino 4bit sound packer
+* instruments 1:2 compressed with the sampack 4bit sound packer
 

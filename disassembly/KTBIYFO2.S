@@ -6128,9 +6128,10 @@ l006f	dc.b	0,0,6,'f',0,0,$17,'~'
 	dc.b	$12,$1d,'4',1,$e8,'A',$c4,'|'
 	dc.b	0,$f,$dc,'0',$10,0,$1c,$c6
 	dc.b	$dc,'0 ',0,$1c,$c6,'Q',$c8
-	dc.b	$ff,$e6,'Nu',0,1,2,4
-	dc.b	8,$10,' @',$80,$c0,$e0,$f0
-	dc.b	$f8,$fc,$fe,$ff,'H',$e7,$ff,$fe
+	dc.b	$ff,$e6,'Nu'
+decodetab:    ; for samdekomp
+  dc.b  0,1,2,4,8,$10,$20,$40,$80,$c0,$e0,$f0,$f8,$fc,$fe,$ff
+  dc.b  'H',$e7,$ff,$fe
 	dc.b	'`',0,$ff,'TH',$e7,$fe,$f8
 	dc.b	'I',$fa,$fd,$f8,'A',$fa,$fe,$18
 	dc.b	' (',0,4,' ',$98,'!',0
