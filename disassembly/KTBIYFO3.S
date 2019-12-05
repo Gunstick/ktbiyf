@@ -1,46 +1,47 @@
 l00d7 equ zuend+0 
  text 
 begin:
-      pea       l0000(pc) 
-      move.w    #$26,-(a7) 	;supexec
-      trap      #$e 
-      addq.l    #6,a7 
-      clr.w     -(a7) 	;pterm0
-      trap      #1
-l0000:lea       l001e(pc),a0
-      move.l    a7,(a0)+
-      lea       l00d4,a7
+      ; when already in super, just skip this part, screen will do an rts
+      pea       start(pc)   ; code to run as super
+      move.w    #38,-(a7) 	;supexec
+      trap      #14         ; xbios
+      addq.l    #6,a7       ; after screen we end up here
+      clr.w     -(sp) 	;#0 exit
+      trap      #1      ; gemdos
+start:lea       oldcpu(pc),a0
+      move.l    sp,(a0)+
+      lea       my_stack,a7
       move      sr,(a0)+
       move      #$2700,sr 
       move      usp,a1
       move.l    a1,(a0)+
       moveq     #$12,d0 
-      bsr       l0010 
+      bsr       ikbd_wrt 
       moveq     #$1a,d0 
-      bsr       l0010 
-      move.l    $408.w,l0019
-      move.l    #l001a,$408.w 
+      bsr       ikbd_wrt 
+      move.l    $408.w,old_408
+      move.l    #exit_with_408,$408.w 
       bsr       l0015 
       bsr       l0012 
       bsr.s     l0002 
       bsr       l0006 
       bsr       l000c 
       bsr       l0009 
-      bra       l0027 
-l0001:lea       l00d4,a7
+      bra       screen 
+back:lea       my_stack,a7
       bsr       l0009 
       bsr       l0008 
       bsr       l0004 
       moveq     #$14,d0 
-      bsr       l0010 
+      bsr       ikbd_wrt 
       moveq     #8,d0 
-      bsr       l0010 
-      lea       l001e(pc),a0
+      bsr       ikbd_wrt 
+      lea       oldcpu(pc),a0
       movea.l   (a0)+,a7
       move      (a0)+,sr
       movea.l   (a0)+,a1
       move      a1,usp
-      move.l    l0019(pc),$408.w
+      move.l    old_408(pc),$408.w
       rts 
 l0002:lea       l001f(pc),a0
       move.b    $ffff8260.w,(a0)+ 
@@ -102,7 +103,7 @@ l0005:movem.l   (a0),d0-d7
       rts 
 l0006:movem.l   l0024(pc),d0-d7 
       movem.l   d0-d7,$ffff8240.w 
-      bsr       l000d 
+      bsr       waitvbl 
       move.b    #0,$ffff8260.w
       move.b    #2,$ffff820a.w
       tst.w     l0023 
@@ -113,11 +114,11 @@ l0006:movem.l   l0024(pc),d0-d7
       clr.b     $ffff8265.w 
 l0007:rts 
 l0008:move.b    #2,$ffff820a.w
-      bsr       l000d 
+      bsr       waitvbl 
       move.b    #0,$ffff820a.w
-      bsr       l000d 
+      bsr       waitvbl 
       move.b    #2,$ffff820a.w
-      bsr       l000d 
+      bsr       waitvbl 
       rts 
 l0009:moveq     #$a,d0
       lea       $ffff8800.w,a0
@@ -139,17 +140,17 @@ l000a:move.b    d0,(a0)
       move.w    #$446,$ffff8922.w 
       move.w    #$401,$ffff8922.w 
 l000b:rts 
-l000c:move.l    #l001d,$68.w
-      move.l    #l001d,$70.w
-      move.l    #l001d,$114.w 
-      move.l    #l001d,$118.w 
-      move.l    #l001d,$120.w 
-      move.l    #l001d,$134.w 
+l000c:move.l    #nix,$68.w
+      move.l    #nix,$70.w
+      move.l    #nix,$114.w 
+      move.l    #nix,$118.w 
+      move.l    #nix,$120.w 
+      move.l    #nix,$134.w 
       bclr      #3,$fffffa17.w
       clr.b     $fffffa07.w 
       clr.b     $fffffa09.w 
       rts 
-l000d:movem.l   a0/d0-d1,-(a7)
+waitvbl:movem.l   a0/d0-d1,-(a7)
       lea       $ffff8209.w,a0
       movep.w   -8(a0),d0 
 l000e:tst.b     (a0)
@@ -161,7 +162,7 @@ l000f:tst.b     (a0)
       bne.s     l000f 
       movem.l   (a7)+,a0/d0-d1
       rts 
-l0010:lea       $fffffc00.w,a0
+ikbd_wrt:lea       $fffffc00.w,a0
 l0011:move.b    (a0),d1 
       btst      #1,d1 
       beq.s     l0011 
@@ -191,16 +192,17 @@ l0017 equ       *-4
       move.l    #0,8.w
 l0018 equ       *-6 
       rts 
-      dc.b      'xbratfsy'
-l0019:dcb.w     2,0 
-l001a:bsr.s     l001b 
-      movea.l   l0019(pc),a0
+      dc.b      'XBRA'
+      dc.b      'TFSY'
+old_408:dc.l     0 
+exit_with_408:bsr.s     exit 
+      movea.l   old_408(pc),a0
       jmp       (a0)
-l001b:move      #$2700,sr 
+exit:move      #$2700,sr 
       movem.l   l0024(pc),d0-d7 
       movem.l   d0-d7,$ffff8240.w 
-      bra       l0001 
-l001c:move      sr,-(a7)
+      bra       back 
+load_file:move      sr,-(a7)
       move      #$2700,sr 
       lea       $fffffa00.w,a1
       movep.w   7(a1),d0
@@ -238,7 +240,7 @@ l001c:move      sr,-(a7)
       trap      #1
       addq.l    #8,a7 
       tst.w     d0
-      bmi       l001b 
+      bmi       exit 
       move.w    d0,d7 
       pea       (a6)
       move.l    #$7a120,-(a7) 
@@ -266,17 +268,21 @@ l001c:move      sr,-(a7)
       movep.w   d0,7(a1)
       move      (a7)+,sr
       rts 
-l001d:dc.b      'ns'
-l001e:dcb.w     4,0 
+nix:rte
+oldcpu:   ; note 2019, this was in old source on 8 bytes instead of 10 resulting in address error
+      ds.l 1 ; saved supervisor stack pointer SSP
+      ds.w 1 ; saved status register SR
+      ds.l 1   ; saved user stack pinter USR
+     ; dcb.w     4,0 
 l001f:dcb.w     21,0
 l0020:dcb.w     12,0
 l0021:dcb.w     5,0 
 l0022:dc.b      $00,$00 
 l0023:dc.b      $00,$00 
 l0024:dcb.w     32,0
-l0025:dc.b      '*.xsd',$00 
-l0026:dc.b      '*.xmd',$00 
-l0027:lea       l00ca,a0
+name_xsd:dc.b      '*.XSD',$00 
+name_xmd:dc.b      '*.XMD',$00 
+screen:lea       l00ca,a0
       lea       l00d7,a1
       movem.l   l0024(pc),a2-a6/d1-d7 
 l0028:movem.l   a2-a6/d1-d7,(a0)
@@ -335,14 +341,14 @@ l0029:movem.l   d1-d2,-(a0)
       dbf       d0,l0029
       bsr       l0040 
       jsr       l00c8 
-      lea       l00d4,a7
-      bsr       l000d 
-      lea       l0025(pc),a5
-      lea       l00d6,a6
-      bsr       l001c 
-      lea       l0026(pc),a5
-      lea       l00d4,a6
-      bsr       l001c 
+      lea       my_stack,a7
+      bsr       waitvbl 
+      lea       name_xsd(pc),a5
+      lea       xsdata_komp,a6
+      bsr       load_file 
+      lea       name_xmd(pc),a5
+      lea       xmdata,a6
+      bsr       load_file 
       lea       l00c0,a0
       movea.l   l00d2,a1
       moveq     #$21,d0 
@@ -407,9 +413,9 @@ l002d:movem.l   (a0)+,a2-a5/d1-d6
       movem.l   a2-a5/d1-d6,120(a1) 
       lea       160(a1),a1
       dbf       d0,l002d
-      move.l    #l00d4,l0069
-      move.l    #l00d6,l006a
-      move.l    #l00d5,l006b
+      move.l    #xmdata,l0069
+      move.l    #xsdata_komp,l006a
+      move.l    #xsdata,l006b
       move.l    #l00cf,l006c
       move.l    #l00d0,l006d
       move.w    l0023(pc),l006e 
@@ -440,7 +446,7 @@ l0030 equ       *-8
       bsr       l0065 
       bsr       l0040 
       cmpi.b    #$39,$fffffc02.w
-      beq       l001b 
+      beq       exit 
       bra.s     l002f 
 l0031:lea       l00cd,a0
       movea.l   a0,a4 
@@ -6064,7 +6070,7 @@ l0070:move.w    4(a4),d0
       tst.w     d0
       beq.s     l0075 
       neg.w     d0
-      bsr       l007e 
+      bsr       dekomp    ; dekompress sounddata
       move.l    a6,(a4) 
       tst.w     6(a4) 
       beq.s     l0073 
@@ -6172,10 +6178,12 @@ l007d:move.l    a1,(a0)+
       move.l    a2,718(a3)
       movem.l   (a7)+,a0-a6/d0-d7 
       rts 
-l007e:lea       l0080(pc),a0
+dekomp:   ; digisound delta depack
+      lea       decodetab(pc),a0
       lsr.w     #1,d0 
       subq.w    #1,d0 
-l007f:moveq     #0,d1 
+dekomploop:
+      moveq     #0,d1 
       move.b    (a5)+,d1
       move.w    d1,d2 
       asr.w     #4,d1 
@@ -6184,10 +6192,12 @@ l007f:moveq     #0,d1
       move.b    d6,(a6)+
       add.b     0(a0,d2.w),d6 
       move.b    d6,(a6)+
-      dbf       d0,l007f
+      dbf       d0,dekomploop
       rts 
-l0080:dc.b      $00,$01,$02,$04,$08,$10,' @'
+decodetab:    ; for samdekomp
+      dc.b      $00,$01,$02,$04,$08,$10,$20,$40
       dc.b      $80,$c0,$e0,$f0,$f8,$fc,$fe,$ff 
+      ; from where is this code called? No label.
       movem.l   a0-a6/d0-d7,-(a7) 
       bra       l007b 
       movem.l   a0-a4/d0-d6,-(a7) 
@@ -6304,7 +6314,7 @@ l008c:moveq     #0,d0
       move.b    14(a1),d0 
       move.w    l008d(pc,d0.w),d0 
       jmp       l008d(pc,d0.w)
-l008d:ori.b     #$20,-(a0)
+l008d:ori.b     #$20,-(a0)   ; $0020 ?
       ori.b     #$20,-(a0)
       ori.b     #$20,-(a0)
       ori.b     #$20,-(a0)
@@ -6369,9 +6379,9 @@ l0093:ori.b     #$90,-(a0)
       move.w    l0094(pc,d0.w),d0 
       jmp       l0095(pc,d0.w)
 l0094 equ       *-2 
-l0095:ori.b     #$28,(a6)+
+l0095:ori.b     #$28,(a6)+    ; damn, this was a jump table, not code
       dc.w      $ff46 
-      ori.b     #$28,(a6)+
+      ori.b     #$28,(a6)+    ; $0028ff46 ?
       dc.w      $ff46 
       ori.b     #$28,(a6)+
       dc.w      $ff46 
@@ -6540,8 +6550,8 @@ l00ae:dcb.w     12,0
       move.l    10(a4),d5 
       moveq     #0,d5 
       lea       l00be(pc),a2
-      move.w    #$1f4,d6
-l00af:swap      d6
+      move.w    #$1f4,d6   ; run loop 500 times
+l00af:swap      d6      ; this smells like a modfile driver
       move.b    0(a0,d0.w),d1 
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
@@ -6574,7 +6584,7 @@ l00af:swap      d6
       move.l    10(a4),d5 
       moveq     #0,d5 
       lea       l00be(pc),a2
-      move.w    #$1f4,d6
+      move.w    #$1f4,d6    ; run loop 500 times
 l00b0:swap      d6
       move.b    0(a0,d0.w),d1 
       move.w    0(a2,d1.w),d6 
@@ -6601,6 +6611,7 @@ l00b0:swap      d6
       move.w    d0,(a3)+
       movem.l   (a7)+,a0-a4/d0-d6 
       rts 
+      ; who calls this code? no label
       movem.l   a0-a4/d0-d6,-(a7) 
       movea.l   l006d(pc),a3
       lea       l00a7(pc),a4
@@ -6623,7 +6634,7 @@ l00b2:moveq     #0,d5
       move.l    4(a4,d7.w),(a5) 
       move.l    0(a4,d7.w),d7 
       movep.l   d7,0(a5)
-      moveq     #$4d,d6 
+      moveq     #$4d,d6  ; run loop 78 times
 l00b3:swap      d6
       move.b    0(a0,d0.w),d1 
       move.w    0(a2,d1.w),d6 
@@ -6730,9 +6741,10 @@ l00b5:moveq     #0,d5
       move.l    4(a4,d7.w),(a5) 
       move.l    0(a4,d7.w),d7 
       movep.l   d7,0(a5)
-      move.w    #$19,d6 
-l00b6:swap      d6
-      move.b    0(a0,d0.w),d1 
+      move.w    #$19,d6 ; run loop 32 times
+l00b6:swap      d6     
+      ; well, a macro loop unrolled this, or lots of copy pasta
+      move.b    0(a0,d0.w),d1    ; a1
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6742,7 +6754,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1     ; a2
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6752,7 +6764,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1     ; a3
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6762,7 +6774,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1     ; a4
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6772,12 +6784,12 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.w    (a6)+,d7
+      move.w    (a6)+,d7           ; hmm?
       move.l    4(a4,d7.w),(a5) 
       move.l    0(a4,d7.w),d7 
       movep.l   d7,0(a5)
       nop 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1      ; b1
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6787,7 +6799,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1     ; b2
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6797,7 +6809,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1     ; b3
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6807,7 +6819,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1     ; b4
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6817,11 +6829,11 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.w    (a6)+,d7
+      move.w    (a6)+,d7            ; hmm?
       move.l    4(a4,d7.w),(a5) 
       move.l    0(a4,d7.w),d7 
       movep.l   d7,0(a5)
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1   ; c1
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6831,7 +6843,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1   ; c2
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6841,7 +6853,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1   ; c3
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6851,7 +6863,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.b    0(a0,d0.w),d1 
+      move.b    0(a0,d0.w),d1   ; c4
       move.w    0(a2,d1.w),d6 
       move.b    0(a1,d3.w),d4 
       add.w     0(a2,d4.w),d6 
@@ -6861,7 +6873,7 @@ l00b6:swap      d6
       addx.w    d6,d0 
       add.l     d5,d3 
       addx.w    d6,d3 
-      move.w    (a6)+,d7
+      move.w    (a6)+,d7          ; hmm?
       move.l    4(a4,d7.w),(a5) 
       move.l    0(a4,d7.w),d7 
       movep.l   d7,0(a5)
@@ -12301,7 +12313,8 @@ l00d0:ds.b      1010
 l00d1:ds.w      1 
 l00d2:ds.l      1 
 l00d3:ds.b      49280 
-l00d4:ds.b      57786 
-l00d5:ds.b      260786
-l00d6:ds.b      238386
+my_stack:
+xmdata: ds.b      57786 
+xsdata:ds.b      260786
+xsdata_komp:ds.b      238386
 zuend: end
