@@ -13,3 +13,11 @@ It is possible to assemble the data files to a file in devpac for each decompile
 
  Cut and paste the decompiled data files out of the code, compile as data in devpac, replace decompiled data in the code with incbin of compiled data file extract
 
+### how to disassemble
+Run easyrider in hatari emulator
+
+Load the prg
+
+You will need to convert several parts from data to code, and others from code to data
+
+save the source as re-assemble version
