@@ -136,7 +136,7 @@ char *argv[];
  int fi,fo;
  int mode=KOMPRESS,par=1;
  
- putchar('\n');
+/* putchar('\n'); */
  
  if ((argc > 1) && (argv[1][0]=='-')) 
   {
@@ -166,7 +166,7 @@ char *argv[];
     }
    else
     {   
-     dekompress(fi);
+     dekompress(fi,fo);
      fclose(fi);
      fclose(fo);
     }
