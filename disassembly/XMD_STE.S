@@ -1,6 +1,12 @@
 ; Disassembly by grazey/PHF 2020
+; STe player - crashes
 
-	opt	x+,w-
+; The only differences between the binaries of xmd_stf and xmd_ste
+; are lines 191 (the STFM version has an RTS forcing STFM machine type)
+; and line 4607 - L0075 uses different data for the STF & STE
+
+
+	opt	o-
 
 	pea	start(pc)
 	move.w	#$26,-(a7)
@@ -181,9 +187,7 @@ ikbd_wrt	lea	$fffffc00.w,a0
 	move.b	d0,2(a0)
 	rts
 
-get_st_t	clr.w	mach_type	; Forces STFM
-	rts
-
+get_st_t	clr.w	mach_type
 	move.l	a7,l0017
 	move.l	8.w,l0018
 	move.l	#l0016,8.w
@@ -4600,7 +4604,7 @@ gfx2	incbin	gfx2
 gfx3	incbin	gfx3
 gfx4	incbin	gfx4
 
-l0075	incbin	stfl0075
+l0075	incbin	stel0075
 
 l0076	dc.b	2,$1e,'D',$e0,'~>',2,0
 	dc.b	$82,$fe,$fe,0,$92,$fe,'l',0

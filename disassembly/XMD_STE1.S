@@ -1,6 +1,12 @@
 ; Disassembly by grazey/PHF 2020
+; STe player - crash prevented by removing Timer B sync code
+; See lines 431 and 1178
 
-	opt	x+,w-
+; The only differences between the binaries of xmd_stf and xmd_ste
+; are lines 191 (the STFM version has an RTS forcing STFM machine type)
+; and line 4607 - L0075 uses different data for the STF & STE
+
+	opt	o-
 
 	pea	start(pc)
 	move.w	#$26,-(a7)
@@ -181,9 +187,7 @@ ikbd_wrt	lea	$fffffc00.w,a0
 	move.b	d0,2(a0)
 	rts
 
-get_st_t	clr.w	mach_type	; Forces STFM
-	rts
-
+get_st_t	clr.w	mach_type
 	move.l	a7,l0017
 	move.l	8.w,l0018
 	move.l	#l0016,8.w
@@ -424,8 +428,8 @@ l002d	movem.l	(a0)+,a2-a5/d1-d6
 	lea	$ffff8800.w,a5
 	movea.l	xmd_digi(pc),a6
 
-.not_fm	move.b	#1,$fffffa07.w	; TB on
-	move.b	#1,$fffffa13.w
+.not_fm	;move.b	#1,$fffffa07.w	; REMOVED to prevent crashing
+	;move.b	#1,$fffffa13.w  ; REMOVED
 
  	movem.l	palette,d0-d7
 	movem.l	d0-d7,$ffff8240.w
@@ -1171,7 +1175,8 @@ my_vbl1	clr.b	$fffffa1b.w
 	move.b	#8,$fffffa1b.w
 	rte
 
-my_vbl	move.l	#my_vbl1,$70.w
+my_vbl	st	vsync	; Added as TB routine not run
+	;move.l	#my_vbl1,$70.w	l Removed so no TB
 	rte
 
 my_tb	move	#$2700,sr
@@ -4599,8 +4604,7 @@ gfx1	incbin	gfx1
 gfx2	incbin	gfx2
 gfx3	incbin	gfx3
 gfx4	incbin	gfx4
-
-l0075	incbin	stfl0075
+l0075	incbin	stel0075
 
 l0076	dc.b	2,$1e,'D',$e0,'~>',2,0
 	dc.b	$82,$fe,$fe,0,$92,$fe,'l',0
